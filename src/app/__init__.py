@@ -1,4 +1,4 @@
-from flask import Flask, request, abort
+from flask import Flask
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -12,4 +12,4 @@ CORS(app,
      }}
 )
 
-from src.app import routes
+from src.app import postgres_controller
