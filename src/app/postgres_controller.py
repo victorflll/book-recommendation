@@ -16,17 +16,17 @@ class PostgresController:
         SetupDB().setup_database()
 
     @staticmethod
-    @app.route('/insert-data', methods=['POST'])
+    @app.route('/postgres/insert-data', methods=['POST'])
     def insert_data():
         SeedData()
 
         return jsonify(), 204
 
     @staticmethod
-    @app.route('/users', methods=['GET'])
+    @app.route('/postgres/users', methods=['GET'])
     def get_users():
         try:
-            conn = Config.get_db_connection()
+            conn = Config.get_postgres_connection()
             cur = conn.cursor(cursor_factory=RealDictCursor)
 
             cur.execute("SELECT * FROM usuarios;")

@@ -12,4 +12,4 @@ CORS(app,
      }}
 )
 
-from src.app import postgres_controller
+from src.app import postgres_controller, mongo_controller

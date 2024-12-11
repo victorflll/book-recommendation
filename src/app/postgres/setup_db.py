@@ -6,7 +6,7 @@ class SetupDB:
     def setup_database():
         """Criação das tabelas do banco de dados."""
         try:
-            conn = Config.get_db_connection()
+            conn = Config.get_postgres_connection()
             cur = conn.cursor()
 
             cur.execute("""

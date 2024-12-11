@@ -9,7 +9,7 @@ class SeedData:
         fake = Faker()
 
         try:
-            conn = Config.get_db_connection()
+            conn = Config.get_postgres_connection()
             cur = conn.cursor()
 
             # Limpar dados anteriores
