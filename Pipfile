@@ -11,6 +11,7 @@ pymongo = "*"
 pyjwt = "*"
 requests = "*"
 flask-cors = "*"
+faker = "*"
 
 [requires]
 python_version = "3.13"
