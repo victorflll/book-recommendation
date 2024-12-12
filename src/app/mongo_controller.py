@@ -11,8 +11,8 @@ from src.app.mongo.seed_data import SeedData
 class MongoController:
     @staticmethod
     @app.route('/mongo/insert-data', methods=['POST'])
-    def mongo_insert_data():
-        SeedData()
+    def mongo_insert_data(limite: int = 10000):
+        SeedData(limite)
 
         return jsonify(), 204
 
@@ -37,7 +37,7 @@ class MongoController:
         return jsonify(data=result, length=len(result))
 
     @staticmethod
-    @app.route('/mongo/top-rated-books', methods=['GET'])
+    @app.route('/mongo/books/top-rated', methods=['GET'])
     def mongo_get_top_rated_books():
         client = Config.get_mongo_database()
         db = client["book_recommendation"]
@@ -56,8 +56,7 @@ class MongoController:
                     "total_avaliacoes": {"$size": "$avaliacoes"}
                 }
             },
-            {"$sort": {"media_avaliacoes": -1, "total_avaliacoes": -1}},
-            {"$limit": 5000}
+            {"$sort": {"media_avaliacoes": -1, "total_avaliacoes": -1}}
         ]
         
         result = json.loads(json_util.dumps(livros.aggregate(pipeline)))

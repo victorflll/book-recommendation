@@ -1,5 +1,3 @@
-from operator import length_hint
-
 from flask import jsonify
 from psycopg2.extras import RealDictCursor
 
@@ -17,8 +15,8 @@ class PostgresController:
 
     @staticmethod
     @app.route('/postgres/insert-data', methods=['POST'])
-    def postgres_insert_data():
-        SeedData()
+    def postgres_insert_data(limite: int = 10000):
+        SeedData(limite)
 
         return jsonify(), 204
 
@@ -38,3 +36,60 @@ class PostgresController:
             return jsonify(data=users, length=len(users))
         except Exception as e:
             return jsonify(error=f"Erro ao conectar ao banco de dados: {str(e)}"), 500
+
+    @staticmethod
+    @app.route('/postgres/books', methods=['GET'])
+    def postgres_search_books():
+        try:
+            conn = Config.get_postgres_connection()
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            
+            query = """
+                SELECT 
+                    l.*,
+                    COALESCE(AVG(a.nota), 0) as media_avaliacoes,
+                    COUNT(a.id) as total_avaliacoes
+                FROM livros l
+                LEFT JOIN avaliacoes a ON l.id = a.livro_id
+                GROUP BY l.id
+                ORDER BY l.titulo;
+            """
+            
+            cur.execute(query)
+            books = cur.fetchall()
+            
+            cur.close()
+            conn.close()
+            
+            return jsonify(data=books)
+        except Exception as e:
+            return jsonify(error=f"Erro ao buscar livros: {str(e)}"), 500
+
+    @staticmethod
+    @app.route('/postgres/books/top-rated', methods=['GET'])
+    def postgres_get_top_rated_books():
+        try:
+            conn = Config.get_postgres_connection()
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            
+            query = """
+                SELECT 
+                    l.*,
+                    COALESCE(AVG(a.nota), 0) as media_avaliacoes,
+                    COUNT(a.id) as total_avaliacoes
+                FROM livros l
+                LEFT JOIN avaliacoes a ON l.id = a.livro_id
+                GROUP BY l.id
+                HAVING COUNT(a.id) > 0
+                ORDER BY media_avaliacoes DESC, total_avaliacoes DESC;
+            """
+            
+            cur.execute(query)
+            top_books = cur.fetchall()
+            
+            cur.close()
+            conn.close()
+            
+            return jsonify(data=top_books)
+        except Exception as e:
+            return jsonify(error=f"Erro ao buscar livros mais bem avaliados: {str(e)}"), 500

@@ -6,7 +6,7 @@ from src.app.config import Config
 
 
 class SeedData:
-    def __init__(self):
+    def __init__(self, limite=10000):
         client = Config.get_mongo_database()
         db = client["book_recommendation"]
         usuarios = db["usuarios"]
@@ -55,22 +55,24 @@ class SeedData:
                 {"$push": {"livros_avaliados": livro_id}}
             )
 
-        for _ in range(10000):
+        for _ in range(limite):
             usuario = criar_usuario()
             usuarios.insert_one(usuario)
 
-        for _ in range(10000):
+        for _ in range(limite):
             livro = criar_livro()
             livros.insert_one(livro)
 
         total_avaliacoes = 0
         todos_usuarios = list(usuarios.find())
         todos_livros = list(livros.find())
-        
-        while total_avaliacoes < 5000:
+
+        while total_avaliacoes < limite / 2:
             usuario = random.choice(todos_usuarios)
             livro = random.choice(todos_livros)
 
             if livro["_id"] not in usuario["livros_avaliados"]:
                 criar_avaliacao(usuario["_id"], livro["_id"])
                 total_avaliacoes += 1
+
+        print("Dados inseridos com sucesso!")
