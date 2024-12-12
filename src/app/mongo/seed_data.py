@@ -67,7 +67,8 @@ class SeedData:
         todos_usuarios = list(usuarios.find())
         todos_livros = list(livros.find())
 
-        while total_avaliacoes < limite / 2:
+        total_avaliacoes_alvo = int(limite / 2)
+        while total_avaliacoes < total_avaliacoes_alvo:
             usuario = random.choice(todos_usuarios)
             livro = random.choice(todos_livros)
 

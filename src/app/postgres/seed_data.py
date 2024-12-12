@@ -17,6 +17,8 @@ class SeedData:
             cur.execute("DELETE FROM usuarios;")
             cur.execute("DELETE FROM livros;")
 
+            conn.commit()
+
             for _ in range(limite):
                 email = fake.email()
 
@@ -35,7 +37,7 @@ class SeedData:
                     (fake.sentence(), fake.name(), fake.word(), fake.text())
                 )
 
-            for _ in range(limite / 2):
+            for _ in range(int(limite / 2)):
                 cur.execute("SELECT id FROM usuarios ORDER BY RANDOM() LIMIT 1;")
                 usuario_id = cur.fetchone()[0]
                 cur.execute("SELECT id FROM livros ORDER BY RANDOM() LIMIT 1;")

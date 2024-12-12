@@ -1,4 +1,4 @@
-from flask import jsonify
+from flask import jsonify, request
 from psycopg2.extras import RealDictCursor
 import json
 from datetime import timedelta
@@ -21,8 +21,9 @@ class PostgresController:
 
     @staticmethod
     @app.route('/postgres/insert-data', methods=['POST'])
-    def postgres_insert_data(limite: int = 10000):
-        SeedData(limite)
+    def postgres_insert_data():
+        limite = request.args.get('limite', 10000)
+        SeedData(int(limite))
 
         return jsonify(), 204
 

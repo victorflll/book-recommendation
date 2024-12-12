@@ -1,7 +1,7 @@
 import json
 
 from bson import json_util
-from flask import jsonify
+from flask import jsonify, request
 from datetime import timedelta
 
 from src.app import app
@@ -15,8 +15,9 @@ CACHE_KEY_TOP_RATED = "mongo:top_rated_books"
 class MongoController:
     @staticmethod
     @app.route('/mongo/insert-data', methods=['POST'])
-    def mongo_insert_data(limite: int = 10000):
-        SeedData(limite)
+    def mongo_insert_data():
+        limite = request.args.get('limite', 10000)
+        SeedData(int(limite))
 
         return jsonify(), 204
 
