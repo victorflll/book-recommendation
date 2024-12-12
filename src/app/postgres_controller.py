@@ -112,3 +112,64 @@ class PostgresController:
             return jsonify(data=top_books)
         except Exception as e:
             return jsonify(error=f"Erro ao buscar livros mais bem avaliados: {str(e)}"), 500
+
+    @staticmethod
+    @app.route('/postgres/recommendations/<int:user_id>', methods=['GET'])
+    def get_personalized_recommendations(user_id):
+        try:
+            conn = Config.get_postgres_connection()
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+
+            cur.execute("""
+                SELECT livro_id, nota 
+                FROM avaliacoes 
+                WHERE usuario_id = %s;
+            """, (user_id,))
+            user_ratings = cur.fetchall()
+
+            if not user_ratings:
+                cur.execute("""
+                    SELECT l.*, ROUND(AVG(a.nota), 2) as rating_medio, COUNT(a.id) as total_avaliacoes
+                    FROM livros l
+                    LEFT JOIN avaliacoes a ON l.id = a.livro_id
+                    GROUP BY l.id
+                    HAVING COUNT(a.id) >= 3
+                    ORDER BY rating_medio DESC, total_avaliacoes DESC
+                    LIMIT 10;
+                """)
+                recommendations = cur.fetchall()
+                recommendation_type = "popular"
+            else:
+                cur.execute("""
+                    WITH user_genres AS (
+                        SELECT DISTINCT l.genero
+                        FROM avaliacoes a
+                        JOIN livros l ON a.livro_id = l.id
+                        WHERE a.usuario_id = %s AND a.nota >= 4
+                    )
+                    SELECT DISTINCT l.*, 
+                           ROUND(AVG(a.nota) OVER (PARTITION BY l.id), 2) as rating_medio,
+                           COUNT(a.id) OVER (PARTITION BY l.id) as total_avaliacoes
+                    FROM livros l
+                    JOIN avaliacoes a ON l.id = a.livro_id
+                    WHERE l.genero IN (SELECT genero FROM user_genres)
+                    AND l.id NOT IN (
+                        SELECT livro_id FROM avaliacoes WHERE usuario_id = %s
+                    )
+                    AND a.nota >= 4
+                    ORDER BY rating_medio DESC, total_avaliacoes DESC
+                    LIMIT 10;
+                """, (user_id, user_id))
+                recommendations = cur.fetchall()
+                recommendation_type = "personalized"
+
+            cur.close()
+            conn.close()
+
+            return jsonify({
+                "type": recommendation_type,
+                "recommendations": recommendations,
+                "count": len(recommendations)
+            })
+        except Exception as e:
+            return jsonify(error=f"Erro ao gerar recomendações: {str(e)}"), 500
