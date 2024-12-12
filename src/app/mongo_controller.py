@@ -1,20 +1,18 @@
 from flask import jsonify
 
 from src.app import app
-from src.app.config import Config
+from src.app.mongo.seed_data import SeedData
 
 
 class MongoController:
     @staticmethod
-    def create_documents():
-        return None
-
-    @staticmethod
     @app.route('/mongo/insert-data', methods=['POST'])
-    def insert_data():
+    def mongo_insert_data():
+        SeedData()
+
         return jsonify(), 204
 
     @staticmethod
     @app.route('/mongo/users', methods=['GET'])
-    def get_users():
+    def mongo_get_users():
         return jsonify(), 200

@@ -17,14 +17,14 @@ class PostgresController:
 
     @staticmethod
     @app.route('/postgres/insert-data', methods=['POST'])
-    def insert_data():
+    def postgres_insert_data():
         SeedData()
 
         return jsonify(), 204
 
     @staticmethod
     @app.route('/postgres/users', methods=['GET'])
-    def get_users():
+    def postgres_get_users():
         try:
             conn = Config.get_postgres_connection()
             cur = conn.cursor(cursor_factory=RealDictCursor)
