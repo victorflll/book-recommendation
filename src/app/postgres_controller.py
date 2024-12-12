@@ -11,6 +11,7 @@ from src.app.postgres.setup_db import SetupDB
 
 CACHE_TIMEOUT = timedelta(seconds=15)
 CACHE_KEY_TOP_RATED = "postgres:top_rated_books"
+CACHE_KEY_RECOMMENDATIONS = "postgres:recommendations:{}"
 
 
 class PostgresController:
@@ -114,9 +115,16 @@ class PostgresController:
             return jsonify(error=f"Erro ao buscar livros mais bem avaliados: {str(e)}"), 500
 
     @staticmethod
-    @app.route('/postgres/recommendations/<int:user_id>', methods=['GET'])
-    def get_personalized_recommendations(user_id):
+    @app.route('/postgres/books/recommendations/<int:user_id>', methods=['GET'])
+    def postgres_get_personalized_recommendations(user_id):
         try:
+            redis_client = Config.get_redis_client()
+            cache_key = CACHE_KEY_RECOMMENDATIONS.format(user_id)
+            cached_data = redis_client.get(cache_key)
+
+            if cached_data:
+                return jsonify(json.loads(cached_data))
+
             conn = Config.get_postgres_connection()
             cur = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -166,10 +174,18 @@ class PostgresController:
             cur.close()
             conn.close()
 
-            return jsonify({
+            response_data = {
                 "type": recommendation_type,
                 "recommendations": recommendations,
                 "count": len(recommendations)
-            })
+            }
+
+            redis_client.setex(
+                cache_key,
+                CACHE_TIMEOUT,
+                json.dumps(response_data, default=str)
+            )
+
+            return jsonify(response_data)
         except Exception as e:
             return jsonify(error=f"Erro ao gerar recomendações: {str(e)}"), 500
