@@ -22,7 +22,7 @@ class SeedData:
                 "_id": fake.uuid4(),
                 "nome": fake.name(),
                 "email": fake.email(),
-                "preferencias": [random.choice(["ficção", "aventura", "romance", "mistério", "história", "biografia"])
+                "preferencias": [random.choice(["Fantasia", "Ficção Científica", "Romance", "Aventura", "Mistério", "História"])
                                  for _ in range(random.randint(1, 3))],
                 "livros_avaliados": []
             }

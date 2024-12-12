@@ -28,13 +28,13 @@ class SeedData:
                 if count == 0:
                     cur.execute(
                         "INSERT INTO usuarios (nome, email, preferencias) VALUES (%s, %s, %s)",
-                        (fake.name(), email, fake.word())
+                        (fake.name(), email, random.choice(["Fantasia", "Ficção Científica", "Romance", "Aventura", "Mistério", "História"]))
                     )
 
             for _ in range(limite):
                 cur.execute(
                     "INSERT INTO livros (titulo, autor, genero, descricao) VALUES (%s, %s, %s, %s)",
-                    (fake.sentence(), fake.name(), fake.word(), fake.text())
+                    (fake.sentence(), fake.name(), random.choice(["Fantasia", "Ficção Científica", "Romance", "Aventura", "Mistério", "História"]), fake.text())
                 )
 
             for _ in range(int(limite / 2)):
