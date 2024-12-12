@@ -12,6 +12,7 @@ pyjwt = "*"
 requests = "*"
 flask-cors = "*"
 faker = "*"
+redis = "*"
 
 [requires]
 python_version = "3.13"

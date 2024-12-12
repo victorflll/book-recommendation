@@ -1,6 +1,7 @@
 import os
 
 import psycopg2
+import redis
 from pymongo import MongoClient
 
 
@@ -24,6 +25,14 @@ class Config:
         port = os.getenv("MONGO_PORT", '27017')
 
         mongo_uri = f"mongodb://{user}:{pwd}@{host}:{port}"
-        client =  MongoClient(mongo_uri)
+        client = MongoClient(mongo_uri)
 
         return client
+
+    @staticmethod
+    def get_redis_client():
+        host = os.getenv("REDIS_HOST", 'localhost')
+        port = int(os.getenv("REDIS_PORT", 6379))
+        db = int(os.getenv("REDIS_DB", 0))
+
+        return redis.Redis(host=host, port=port, db=db, decode_responses=True)

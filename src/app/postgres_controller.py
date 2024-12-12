@@ -1,10 +1,16 @@
 from flask import jsonify
 from psycopg2.extras import RealDictCursor
+import json
+from datetime import timedelta
 
 from src.app import app
 from src.app.config import Config
 from src.app.postgres.seed_data import SeedData
 from src.app.postgres.setup_db import SetupDB
+
+
+CACHE_TIMEOUT = timedelta(seconds=15)
+CACHE_KEY_TOP_RATED = "postgres:top_rated_books"
 
 
 class PostgresController:
@@ -69,13 +75,19 @@ class PostgresController:
     @app.route('/postgres/books/top-rated', methods=['GET'])
     def postgres_get_top_rated_books():
         try:
+            redis_client = Config.get_redis_client()
+            cached_data = redis_client.get(CACHE_KEY_TOP_RATED)
+            
+            if cached_data:
+                return jsonify(data=json.loads(cached_data))
+
             conn = Config.get_postgres_connection()
             cur = conn.cursor(cursor_factory=RealDictCursor)
             
             query = """
                 SELECT 
                     l.*,
-                    COALESCE(AVG(a.nota), 0) as media_avaliacoes,
+                    COALESCE(AVG(a.nota)::float, 0.0) as media_avaliacoes,
                     COUNT(a.id) as total_avaliacoes
                 FROM livros l
                 LEFT JOIN avaliacoes a ON l.id = a.livro_id
@@ -89,6 +101,12 @@ class PostgresController:
             
             cur.close()
             conn.close()
+            
+            redis_client.setex(
+                CACHE_KEY_TOP_RATED,
+                CACHE_TIMEOUT,
+                json.dumps(top_books)
+            )
             
             return jsonify(data=top_books)
         except Exception as e:
